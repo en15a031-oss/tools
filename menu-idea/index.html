@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>新メニューアイデアジェネレーター</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+      background: #fafaf8;
+      color: #2c2c2c;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 16px;
+    }
+
+    h1 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+      color: #1a1a1a;
+    }
+
+    .subtitle {
+      font-size: 0.8rem;
+      color: #888;
+      margin-bottom: 36px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 28px 24px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+    }
+
+    .mode-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #888;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .mode-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .mode-tab {
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1.5px solid #ddd;
+      background: #fff;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      color: #555;
+    }
+
+    .mode-tab.active {
+      background: #2c2c2c;
+      border-color: #2c2c2c;
+      color: #fff;
+    }
+
+    .filter-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .filter-group {
+      flex: 1;
+      min-width: 120px;
+    }
+
+    .filter-group label {
+      display: block;
+      font-size: 0.72rem;
+      color: #888;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    .filter-group select,
+    .filter-group input {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      background: #fafafa;
+      color: #2c2c2c;
+      appearance: none;
+    }
+
+    .filter-group select:focus,
+    .filter-group input:focus {
+      outline: none;
+      border-color: #aaa;
+    }
+
+    .generate-btn {
+      width: 100%;
+      padding: 14px;
+      background: #2c2c2c;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      transition: background 0.15s;
+    }
+
+    .generate-btn:hover {
+      background: #444;
+    }
+
+    .result-area {
+      margin-top: 28px;
+      min-height: 80px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .result-main {
+      font-size: 1.5rem;
+      font-weight: 700;
+      text-align: center;
+      line-height: 1.5;
+      color: #1a1a1a;
+    }
+
+    .result-sub {
+      font-size: 0.78rem;
+      color: #aaa;
+      text-align: center;
+    }
+
+    .result-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      background: #f0f0ee;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      color: #777;
+      margin-top: 4px;
+    }
+
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+
+  <h1>新メニューアイデア</h1>
+  <p class="subtitle">ランダムな組み合わせから発想のきっかけを</p>
+
+  <div class="card">
+
+    <div class="mode-label">モード</div>
+    <div class="mode-tabs">
+      <button class="mode-tab active" data-mode="full-random">完全ランダム</button>
+      <button class="mode-tab" data-mode="fix-ingredient">食材 → 料理名</button>
+      <button class="mode-tab" data-mode="fix-dish">料理名 → 食材</button>
+      <button class="mode-tab" data-mode="season">季節しばり</button>
+      <button class="mode-tab" data-mode="origin">国籍しばり</button>
+    </div>
+
+    <!-- 食材固定 -->
+    <div class="filter-row hidden" id="filter-ingredient">
+      <div class="filter-group">
+        <label>食材</label>
+        <select id="select-ingredient">
+          <option value="">選択してください</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 料理名固定 -->
+    <div class="filter-row hidden" id="filter-dish">
+      <div class="filter-group">
+        <label>料理名</label>
+        <select id="select-dish">
+          <option value="">選択してください</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 季節しばり -->
+    <div class="filter-row hidden" id="filter-season">
+      <div class="filter-group">
+        <label>季節</label>
+        <select id="select-season">
+          <option value="">選択してください</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 国籍しばり -->
+    <div class="filter-row hidden" id="filter-origin">
+      <div class="filter-group">
+        <label>国籍・ジャンル</label>
+        <select id="select-origin">
+          <option value="">選択してください</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="generate-btn" id="generate-btn">アイデアを出す</button>
+
+    <div class="result-area" id="result-area">
+      <div class="result-sub">ボタンを押すと組み合わせが出ます</div>
+    </div>
+
+  </div>
+
+  <script src="data.js"></script>
+  <script>
+    let currentMode = 'full-random';
+
+    // セレクトボックスを初期化
+    function initSelects() {
+      const ingSelect = document.getElementById('select-ingredient');
+      DATA.ingredients.forEach(i => {
+        const opt = document.createElement('option');
+        opt.value = i.name;
+        opt.textContent = i.name;
+        ingSelect.appendChild(opt);
+      });
+
+      const dishSelect = document.getElementById('select-dish');
+      DATA.dishes.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d.name;
+        opt.textContent = d.name;
+        dishSelect.appendChild(opt);
+      });
+
+      const seasonSelect = document.getElementById('select-season');
+      DATA.seasons.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s;
+        opt.textContent = s;
+        seasonSelect.appendChild(opt);
+      });
+
+      const originSelect = document.getElementById('select-origin');
+      DATA.origins.forEach(o => {
+        const opt = document.createElement('option');
+        opt.value = o;
+        opt.textContent = o;
+        originSelect.appendChild(opt);
+      });
+    }
+
+    // モード切り替え
+    document.querySelectorAll('.mode-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentMode = tab.dataset.mode;
+
+        // フィルター表示切り替え
+        document.getElementById('filter-ingredient').classList.add('hidden');
+        document.getElementById('filter-dish').classList.add('hidden');
+        document.getElementById('filter-season').classList.add('hidden');
+        document.getElementById('filter-origin').classList.add('hidden');
+
+        if (currentMode === 'fix-ingredient') document.getElementById('filter-ingredient').classList.remove('hidden');
+        if (currentMode === 'fix-dish') document.getElementById('filter-dish').classList.remove('hidden');
+        if (currentMode === 'season') document.getElementById('filter-season').classList.remove('hidden');
+        if (currentMode === 'origin') document.getElementById('filter-origin').classList.remove('hidden');
+
+        document.getElementById('result-area').innerHTML = '<div class="result-sub">ボタンを押すと組み合わせが出ます</div>';
+      });
+    });
+
+    function pickRandom(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function showResult(ingredient, dish, tags) {
+      const area = document.getElementById('result-area');
+      let badgeHtml = tags.map(t => `<span class="result-badge">${t}</span>`).join(' ');
+      area.innerHTML = `
+        <div class="result-main">${ingredient}<br><span style="color:#aaa;font-size:1rem">×</span><br>${dish}</div>
+        <div>${badgeHtml}</div>
+      `;
+    }
+
+    function showError(msg) {
+      document.getElementById('result-area').innerHTML = `<div class="result-sub">${msg}</div>`;
+    }
+
+    document.getElementById('generate-btn').addEventListener('click', () => {
+      let ingredient, dish, tags = [];
+
+      if (currentMode === 'full-random') {
+        ingredient = pickRandom(DATA.ingredients);
+        dish = pickRandom(DATA.dishes);
+        tags = [...new Set([...ingredient.seasons, ...dish.origins])];
+        showResult(ingredient.name, dish.name, tags);
+
+      } else if (currentMode === 'fix-ingredient') {
+        const val = document.getElementById('select-ingredient').value;
+        if (!val) return showError('食材を選んでください');
+        ingredient = DATA.ingredients.find(i => i.name === val);
+        dish = pickRandom(DATA.dishes);
+        tags = [...ingredient.seasons, ...dish.origins];
+        showResult(ingredient.name, dish.name, tags);
+
+      } else if (currentMode === 'fix-dish') {
+        const val = document.getElementById('select-dish').value;
+        if (!val) return showError('料理名を選んでください');
+        dish = DATA.dishes.find(d => d.name === val);
+        ingredient = pickRandom(DATA.ingredients);
+        tags = [...ingredient.seasons, ...dish.origins];
+        showResult(ingredient.name, dish.name, tags);
+
+      } else if (currentMode === 'season') {
+        const val = document.getElementById('select-season').value;
+        if (!val) return showError('季節を選んでください');
+        const filtered = DATA.ingredients.filter(i => i.seasons.includes(val) || i.seasons.includes('通年'));
+        if (!filtered.length) return showError('該当する食材がありません');
+        ingredient = pickRandom(filtered);
+        dish = pickRandom(DATA.dishes);
+        tags = [val, ...dish.origins];
+        showResult(ingredient.name, dish.name, tags);
+
+      } else if (currentMode === 'origin') {
+        const val = document.getElementById('select-origin').value;
+        if (!val) return showError('国籍を選んでください');
+        const filtered = DATA.dishes.filter(d => d.origins.includes(val));
+        if (!filtered.length) return showError('該当する料理がありません');
+        dish = pickRandom(filtered);
+        ingredient = pickRandom(DATA.ingredients);
+        tags = [...ingredient.seasons, val];
+        showResult(ingredient.name, dish.name, tags);
+      }
+    });
+
+    initSelects();
+  </script>
+</body>
+</html>
