@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>原価チェッカー</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+      background: #fafaf8;
+      color: #2c2c2c;
+      min-height: 100vh;
+      padding: 40px 16px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: #1a1a1a;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      font-size: 0.8rem;
+      color: #888;
+      margin-bottom: 32px;
+    }
+
+    /* 仕入れ高 */
+    .purchase-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 32px;
+      background: #fff;
+      border: 1px solid #e8e8e8;
+      border-radius: 10px;
+      padding: 16px 20px;
+    }
+
+    .purchase-row label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      white-space: nowrap;
+      color: #444;
+    }
+
+    .purchase-row input {
+      width: 160px;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 1rem;
+      text-align: right;
+      background: #e8f4fd;
+    }
+
+    .purchase-row .unit {
+      font-size: 0.85rem;
+      color: #666;
+    }
+
+    /* テーブル */
+    .table-wrap {
+      overflow-x: auto;
+      margin-bottom: 16px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      min-width: 700px;
+    }
+
+    thead th {
+      background: #f0f0ee;
+      padding: 10px 8px;
+      text-align: center;
+      font-weight: 600;
+      color: #444;
+      border-bottom: 2px solid #ddd;
+      white-space: nowrap;
+    }
+
+    thead .th-input { background: #e8f4fd; }
+    thead .th-auto  { background: #f0f5e8; }
+
+    tbody tr:hover { background: #fafaf5; }
+
+    tbody td {
+      padding: 8px 6px;
+      border-bottom: 1px solid #eee;
+      text-align: right;
+    }
+
+    tbody td:first-child { text-align: left; }
+    tbody td:last-child  { text-align: center; }
+
+    tbody td input {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 0.85rem;
+      text-align: right;
+      background: #e8f4fd;
+    }
+
+    tbody td input.name-input {
+      text-align: left;
+      background: #e8f4fd;
+    }
+
+    .auto-cell {
+      background: #f0f5e8;
+      color: #2a5c00;
+      font-weight: 500;
+      padding: 6px 8px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+
+    tfoot td {
+      padding: 10px 8px;
+      font-weight: 700;
+      border-top: 2px solid #ccc;
+      text-align: right;
+      font-size: 0.85rem;
+    }
+
+    .del-btn {
+      background: none;
+      border: none;
+      color: #bbb;
+      cursor: pointer;
+      font-size: 1.1rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      line-height: 1;
+    }
+    .del-btn:hover { color: #e55; background: #fee; }
+
+    .add-btn {
+      display: inline-block;
+      margin-bottom: 32px;
+      padding: 8px 20px;
+      background: #fff;
+      border: 1px dashed #aaa;
+      border-radius: 7px;
+      color: #666;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    .add-btn:hover { background: #f5f5f5; border-color: #888; }
+
+    /* サマリー */
+    .summary {
+      background: #fff;
+      border: 1px solid #e8e8e8;
+      border-radius: 10px;
+      padding: 20px 24px;
+      margin-bottom: 20px;
+    }
+
+    .summary h2 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #444;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px 32px;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0;
+      font-size: 0.9rem;
+    }
+
+    .summary-row .label { color: #666; }
+
+    .summary-row .value {
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    .summary-row .badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+      margin-left: 8px;
+    }
+
+    .badge-green  { background: #e6f4ea; color: #2a7a3a; }
+    .badge-yellow { background: #fff8e1; color: #b07800; }
+    .badge-red    { background: #fdecea; color: #c0392b; }
+
+    .summary-divider {
+      grid-column: 1 / -1;
+      border: none;
+      border-top: 1px solid #eee;
+      margin: 4px 0;
+    }
+
+    /* ロス候補 */
+    .loss {
+      background: #fff;
+      border: 1px solid #e8e8e8;
+      border-radius: 10px;
+      padding: 20px 24px;
+      margin-bottom: 32px;
+    }
+
+    .loss h2 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #444;
+      margin-bottom: 6px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .loss-note {
+      font-size: 0.75rem;
+      color: #aaa;
+      margin-bottom: 14px;
+    }
+
+    .loss-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .loss-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      background: #fafaf5;
+      border-radius: 7px;
+    }
+
+    .loss-rank {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #888;
+      min-width: 28px;
+    }
+
+    .loss-name {
+      flex: 1;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .loss-amount {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #c0392b;
+    }
+
+    .no-data {
+      color: #aaa;
+      font-size: 0.85rem;
+      padding: 8px 0;
+    }
+
+    /* フッター */
+    footer {
+      text-align: center;
+      font-size: 0.75rem;
+      color: #bbb;
+      padding-bottom: 40px;
+    }
+
+    @media (max-width: 600px) {
+      .summary-grid { grid-template-columns: 1fr; }
+    }
+
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>原価チェッカー</h1>
+  <p class="subtitle">仕入れ高と商品データを入力すると、原価率とロス候補を自動計算します</p>
+
+  <!-- 仕入れ高 -->
+  <div class="purchase-row">
+    <label>仕入れ高（円）</label>
+    <input type="number" id="purchase" min="0" placeholder="168840" oninput="calc()">
+    <span class="unit">円</span>
+  </div>
+
+  <!-- 商品テーブル -->
+  <div class="table-wrap">
+    <table id="items-table">
+      <thead>
+        <tr>
+          <th class="th-input">商品名</th>
+          <th class="th-input">販売価格<br>（円）</th>
+          <th class="th-input">売上点数<br>（個）</th>
+          <th class="th-input">理想原価率<br>（%）</th>
+          <th class="th-auto">商品別売上<br>（円）</th>
+          <th class="th-auto">理想原価/個<br>（円）</th>
+          <th class="th-auto">理想原価計<br>（円）</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+      <tfoot>
+        <tr>
+          <td colspan="4" style="text-align:right; color:#888; font-weight:400;">合　計</td>
+          <td id="foot-sales">—</td>
+          <td></td>
+          <td id="foot-ideal">—</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <button class="add-btn" onclick="addRow()">＋ 商品を追加</button>
+
+  <!-- サマリー -->
+  <div class="summary">
+    <h2>■ サマリー</h2>
+    <div class="summary-grid">
+      <div class="summary-row">
+        <span class="label">総売上</span>
+        <span class="value" id="s-sales">—</span>
+      </div>
+      <div class="summary-row">
+        <span class="label">仕入れ高</span>
+        <span class="value" id="s-purchase">—</span>
+      </div>
+      <hr class="summary-divider">
+      <div class="summary-row">
+        <span class="label">実際原価率</span>
+        <span class="value" id="s-actual-rate">—</span>
+      </div>
+      <div class="summary-row">
+        <span class="label">理想原価総和</span>
+        <span class="value" id="s-ideal-total">—</span>
+      </div>
+      <div class="summary-row">
+        <span class="label">差異（仕入れ − 理想）</span>
+        <span class="value" id="s-diff">—</span>
+      </div>
+      <div class="summary-row">
+        <span class="label">差異率（対売上）</span>
+        <span class="value" id="s-diff-rate">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ロス候補 -->
+  <div class="loss">
+    <h2>■ ロス候補（推定）</h2>
+    <p class="loss-note">推定ロス寄与 = 差異 × (商品の理想原価計 ÷ 理想原価総和) × リスク補正（仕込み量・コスト率・単品コスト）。あくまで推定値です。</p>
+    <div class="loss-list" id="loss-list">
+      <p class="no-data">データを入力してください</p>
+    </div>
+  </div>
+
+  <footer>
+    データはブラウザに自動保存されます &nbsp;|&nbsp;
+    <a href="https://en15a031-oss.github.io/tools/" style="color:#bbb;">ツール一覧</a>
+  </footer>
+</div>
+
+<script>
+  const STORAGE_KEY = 'cost-checker-v1';
+
+  // --- 初期データ ---
+  let rows = [];
+
+  function newRow(name='', price='', qty='', rate='') {
+    return { name, price, qty, rate, id: Date.now() + Math.random() };
+  }
+
+  // --- ロード ---
+  function load() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const data = JSON.parse(saved);
+        document.getElementById('purchase').value = data.purchase || '';
+        rows = data.rows || [];
+      }
+    } catch(e) {}
+    if (rows.length === 0) {
+      rows = [newRow(), newRow(), newRow()];
+    }
+    renderTable();
+    calc();
+  }
+
+  // --- セーブ ---
+  function save() {
+    const purchase = document.getElementById('purchase').value;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ purchase, rows }));
+  }
+
+  // --- 行の追加 ---
+  function addRow() {
+    rows.push(newRow());
+    renderTable();
+    calc();
+  }
+
+  // --- 行の削除 ---
+  function deleteRow(id) {
+    rows = rows.filter(r => r.id !== id);
+    renderTable();
+    calc();
+  }
+
+  // --- テーブル描画 ---
+  function renderTable() {
+    const tbody = document.getElementById('tbody');
+    tbody.innerHTML = '';
+    rows.forEach(row => {
+      const tr = document.createElement('tr');
+      tr.dataset.id = row.id;
+      tr.innerHTML = `
+        <td><input class="name-input" type="text" placeholder="商品名" value="${esc(row.name)}" oninput="updateRow(${row.id},'name',this.value)"></td>
+        <td><input type="number" min="0" placeholder="800" value="${esc(row.price)}" oninput="updateRow(${row.id},'price',this.value)"></td>
+        <td><input type="number" min="0" placeholder="100" value="${esc(row.qty)}" oninput="updateRow(${row.id},'qty',this.value)"></td>
+        <td><input type="number" min="0" max="100" placeholder="30" value="${esc(row.rate)}" oninput="updateRow(${row.id},'rate',this.value)"></td>
+        <td><span class="auto-cell" id="auto-sales-${row.id}">—</span></td>
+        <td><span class="auto-cell" id="auto-unit-${row.id}">—</span></td>
+        <td><span class="auto-cell" id="auto-ideal-${row.id}">—</span></td>
+        <td><button class="del-btn" onclick="deleteRow(${row.id})" title="削除">×</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function esc(v) {
+    if (v === undefined || v === null || v === '') return '';
+    return String(v).replace(/"/g, '&quot;');
+  }
+
+  function updateRow(id, field, value) {
+    const row = rows.find(r => r.id === id);
+    if (row) row[field] = value;
+    calc();
+    save();
+  }
+
+  // --- 計算 ---
+  function calc() {
+    const purchase = parseFloat(document.getElementById('purchase').value) || 0;
+    let totalSales = 0;
+    let totalIdeal = 0;
+
+    const computed = rows.map(row => {
+      const price = parseFloat(row.price) || 0;
+      const qty   = parseFloat(row.qty)   || 0;
+      const rate  = parseFloat(row.rate)  || 0;
+
+      const sales    = price * qty;
+      const unitCost = Math.round(price * rate / 100);
+      const idealSum = unitCost * qty;
+
+      totalSales += sales;
+      totalIdeal += idealSum;
+
+      return { ...row, price, qty, rate, sales, unitCost, idealSum };
+    });
+
+    // 行ごとの自動計算セル更新
+    computed.forEach(c => {
+      const s = document.getElementById(`auto-sales-${c.id}`);
+      const u = document.getElementById(`auto-unit-${c.id}`);
+      const i = document.getElementById(`auto-ideal-${c.id}`);
+      if (s) s.textContent = c.sales ? fmt(c.sales) : '—';
+      if (u) u.textContent = c.unitCost ? fmt(c.unitCost) : '—';
+      if (i) i.textContent = c.idealSum ? fmt(c.idealSum) : '—';
+    });
+
+    // フッター合計
+    document.getElementById('foot-sales').textContent  = totalSales  ? fmt(totalSales)  : '—';
+    document.getElementById('foot-ideal').textContent  = totalIdeal  ? fmt(totalIdeal)  : '—';
+
+    // サマリー
+    const diff      = purchase - totalIdeal;
+    const actualRate = totalSales > 0 ? (purchase / totalSales * 100) : 0;
+    const diffRate   = totalSales > 0 ? (diff / totalSales * 100) : 0;
+
+    document.getElementById('s-sales').textContent     = totalSales  ? fmt(totalSales) + '円' : '—';
+    document.getElementById('s-purchase').textContent  = purchase    ? fmt(purchase)   + '円' : '—';
+    document.getElementById('s-ideal-total').textContent = totalIdeal ? fmt(totalIdeal) + '円' : '—';
+    document.getElementById('s-diff').textContent      = totalIdeal && purchase ? fmt(diff) + '円　▲ ' + (diff >= 0 ? '仕入れが理想より多い' : '仕入れが理想より少ない') : '—';
+    document.getElementById('s-diff-rate').textContent = totalSales && purchase ? diffRate.toFixed(1) + '%' : '—';
+
+    // 実際原価率バッジ
+    const rateEl = document.getElementById('s-actual-rate');
+    if (actualRate > 0) {
+      let badgeClass = 'badge-green', badgeText = '良好';
+      if (actualRate > 35) { badgeClass = 'badge-red';    badgeText = '35%超（要改善）'; }
+      else if (actualRate > 30) { badgeClass = 'badge-yellow'; badgeText = '注意'; }
+      rateEl.innerHTML = `${actualRate.toFixed(1)}%<span class="badge ${badgeClass}">${badgeText}</span>`;
+    } else {
+      rateEl.textContent = '—';
+    }
+
+    // ロス候補
+    renderLoss(computed, diff, totalIdeal);
+
+    save();
+  }
+
+  // --- パーセンタイル（Excel PERCENTILE互換） ---
+  function percentile(arr, p) {
+    const sorted = arr.filter(v => v > 0).sort((a, b) => a - b);
+    if (sorted.length === 0) return 0;
+    if (sorted.length === 1) return sorted[0];
+    const rank = p * (sorted.length - 1);
+    const lower = Math.floor(rank);
+    const upper = Math.ceil(rank);
+    if (lower === upper) return sorted[lower];
+    return sorted[lower] + (sorted[upper] - sorted[lower]) * (rank - lower);
+  }
+
+  // --- ロス候補計算 ---
+  function renderLoss(computed, diff, totalIdeal) {
+    const listEl = document.getElementById('loss-list');
+
+    const valid = computed.filter(c => c.idealSum > 0 && c.name);
+    if (valid.length === 0 || diff <= 0 || totalIdeal <= 0) {
+      listEl.innerHTML = '<p class="no-data">差異がプラスのときにロス候補を表示します</p>';
+      return;
+    }
+
+    // パーセンタイル用配列（全行から0除外）
+    const qtyArr   = computed.map(c => c.qty).filter(v => v > 0);
+    const priceArr = computed.map(c => c.price).filter(v => v > 0);
+    const qtyP67   = percentile(qtyArr,   0.67);
+    const qtyP33   = percentile(qtyArr,   0.33);
+    const priceP67 = percentile(priceArr, 0.67);
+    const priceP33 = percentile(priceArr, 0.33);
+
+    const scored = valid.map(c => {
+      // I: 売上点数スコア（パーセンタイル3段階）
+      const iScore = c.qty === 0 ? 0 : (c.qty >= qtyP67 ? 3 : c.qty >= qtyP33 ? 2 : 1);
+      // J: 販売価格スコア（パーセンタイル3段階）
+      const jScore = c.price === 0 ? 0 : (c.price >= priceP67 ? 3 : c.price >= priceP33 ? 2 : 1);
+      // K: 理想原価率スコア（固定閾値: 35%以上=3, 25%以上=2, それ以下=1）
+      const rateDecimal = c.rate / 100;
+      const kScore = c.rate === 0 ? 0 : (rateDecimal >= 0.35 ? 3 : rateDecimal >= 0.25 ? 2 : 1);
+      // L: リスク係数 = (I+J+K)/9
+      const lossRisk = (iScore + jScore + kScore) / 9;
+      // M: 基本ロス = diff × (idealSum / totalIdeal)
+      const baseLoss = diff * (c.idealSum / totalIdeal);
+      // N: 推定ロス寄与 = M × (1 + L)
+      const lossEst = baseLoss * (1 + lossRisk);
+      return { ...c, lossEst };
+    });
+
+    scored.sort((a, b) => b.lossEst - a.lossEst);
+    const top3 = scored.slice(0, 3);
+
+    listEl.innerHTML = top3.map((c, i) => `
+      <div class="loss-item">
+        <span class="loss-rank">${i + 1}位</span>
+        <span class="loss-name">${esc2(c.name)}</span>
+        <span class="loss-amount">${fmt(Math.round(c.lossEst))}円</span>
+      </div>
+    `).join('');
+  }
+
+  function fmt(n) {
+    return Number(n).toLocaleString('ja-JP');
+  }
+
+  function esc2(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // Enterキーで次の入力欄へ移動
+  document.addEventListener('keydown', function(e) {
+    if (e.key !== 'Enter') return;
+    const inputs = Array.from(document.querySelectorAll('input'));
+    const idx = inputs.indexOf(e.target);
+    if (idx >= 0 && idx < inputs.length - 1) {
+      e.preventDefault();
+      inputs[idx + 1].focus();
+    }
+  });
+
+  // 起動
+  load();
+</script>
+</body>
+</html>
