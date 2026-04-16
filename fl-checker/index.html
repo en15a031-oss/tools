@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FL比率チェッカー</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+      background: #fafaf8;
+      color: #2c2c2c;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 16px;
+    }
+
+    h1 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+      color: #1a1a1a;
+    }
+
+    .subtitle {
+      font-size: 0.8rem;
+      color: #888;
+      margin-bottom: 36px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 28px 24px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+      margin-bottom: 16px;
+    }
+
+    .section-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #888;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .input-group {
+      margin-bottom: 16px;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 6px;
+    }
+
+    .input-group label span {
+      font-size: 0.7rem;
+      color: #aaa;
+      font-weight: 400;
+      margin-left: 4px;
+    }
+
+    .input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-wrap .prefix {
+      position: absolute;
+      left: 12px;
+      font-size: 0.9rem;
+      color: #aaa;
+      pointer-events: none;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 14px 12px 14px 32px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 1.15rem;
+      background: #fafafa;
+      color: #2c2c2c;
+      transition: border-color 0.15s;
+    }
+
+    .input-group input::-webkit-inner-spin-button,
+    .input-group input::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    .input-group input[type=number] {
+      -moz-appearance: textfield;
+    }
+
+    .input-group input:focus {
+      outline: none;
+      border-color: #aaa;
+      background: #fff;
+    }
+
+    .calc-btn {
+      width: 100%;
+      padding: 14px;
+      background: #2c2c2c;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      transition: background 0.15s;
+      margin-top: 8px;
+    }
+
+    .calc-btn:hover { background: #444; }
+
+    .reset-btn {
+      width: 100%;
+      padding: 10px;
+      background: none;
+      color: #aaa;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 12px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: all 0.15s;
+    }
+
+    .reset-btn:hover { color: #555; border-color: #aaa; }
+
+    /* 結果カード */
+    .result-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 28px 24px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+      display: none;
+    }
+
+    .result-card.visible { display: block; }
+
+    /* 判定バナー */
+    .verdict {
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .verdict.good    { background: #e8f5e9; }
+    .verdict.caution { background: #fff8e1; }
+    .verdict.danger  { background: #fdecea; }
+
+    .verdict-icon {
+      font-size: 2rem;
+      line-height: 1;
+    }
+
+    .verdict-text .label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    .verdict.good    .label { color: #2e7d32; }
+    .verdict.caution .label { color: #f57f17; }
+    .verdict.danger  .label { color: #c62828; }
+
+    .verdict-text .fl-value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .verdict.good    .fl-value { color: #2e7d32; }
+    .verdict.caution .fl-value { color: #f57f17; }
+    .verdict.danger  .fl-value { color: #c62828; }
+
+    .verdict-text .fl-sub {
+      font-size: 0.75rem;
+      color: #999;
+      margin-top: 2px;
+    }
+
+    /* 内訳 */
+    .breakdown {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .breakdown-item {
+      flex: 1;
+      background: #fafaf8;
+      border-radius: 10px;
+      padding: 14px 12px;
+      text-align: center;
+    }
+
+    .breakdown-item .b-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #aaa;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+
+    .breakdown-item .b-value {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #2c2c2c;
+    }
+
+    .breakdown-item .b-amount {
+      font-size: 0.72rem;
+      color: #aaa;
+      margin-top: 2px;
+    }
+
+    /* バー */
+    .bar-section {
+      margin-bottom: 24px;
+    }
+
+    .bar-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: #888;
+      margin-bottom: 6px;
+    }
+
+    .bar-track {
+      height: 10px;
+      background: #f0f0ee;
+      border-radius: 99px;
+      overflow: hidden;
+      margin-bottom: 10px;
+      position: relative;
+    }
+
+    .bar-fill-f {
+      height: 100%;
+      background: #64b5f6;
+      border-radius: 99px 0 0 99px;
+      position: absolute;
+      left: 0;
+      transition: width 0.4s ease;
+    }
+
+    .bar-fill-l {
+      height: 100%;
+      background: #81c784;
+      border-radius: 0;
+      position: absolute;
+      transition: width 0.4s ease, left 0.4s ease;
+    }
+
+    .bar-legend {
+      display: flex;
+      gap: 16px;
+    }
+
+    .bar-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.72rem;
+      color: #888;
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .dot-f { background: #64b5f6; }
+    .dot-l { background: #81c784; }
+
+    /* アドバイス */
+    .advice-section .section-label {
+      margin-bottom: 12px;
+    }
+
+    .advice-item {
+      display: flex;
+      gap: 10px;
+      padding: 12px 0;
+      border-bottom: 1px solid #f0f0ee;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      color: #444;
+    }
+
+    .advice-item:last-child { border-bottom: none; }
+
+    .advice-icon {
+      font-size: 1rem;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>FL比率チェッカー</h1>
+  <p class="subtitle">食材費・人件費の比率を診断して改善点を確認</p>
+
+  <div class="card">
+    <div class="section-label">数値を入力</div>
+
+    <div class="input-group">
+      <label>月間売上<span>（税抜き推奨）</span></label>
+      <div class="input-wrap">
+        <span class="prefix">¥</span>
+        <input type="number" id="sales" placeholder="1,000,000" min="0">
+      </div>
+    </div>
+
+    <div class="input-group">
+      <label>食材費（F）<span>仕入れ・食材コスト合計</span></label>
+      <div class="input-wrap">
+        <span class="prefix">¥</span>
+        <input type="number" id="food" placeholder="300,000" min="0">
+      </div>
+    </div>
+
+    <div class="input-group">
+      <label>人件費（L）<span>給与・アルバイト代合計</span></label>
+      <div class="input-wrap">
+        <span class="prefix">¥</span>
+        <input type="number" id="labor" placeholder="250,000" min="0">
+      </div>
+    </div>
+
+    <button class="calc-btn" id="calc-btn">診断する</button>
+    <button class="reset-btn" id="reset-btn">リセット</button>
+  </div>
+
+  <div class="result-card" id="result-card">
+
+    <div id="verdict" class="verdict">
+      <div class="verdict-icon" id="verdict-icon"></div>
+      <div class="verdict-text">
+        <div class="label" id="verdict-label"></div>
+        <div class="fl-value" id="fl-value"></div>
+        <div class="fl-sub">FL比率（目安：55%未満が良好）</div>
+      </div>
+    </div>
+
+    <div class="breakdown">
+      <div class="breakdown-item">
+        <div class="b-label">F比率（食材費）</div>
+        <div class="b-value" id="f-rate"></div>
+        <div class="b-amount" id="f-amount"></div>
+      </div>
+      <div class="breakdown-item">
+        <div class="b-label">L比率（人件費）</div>
+        <div class="b-value" id="l-rate"></div>
+        <div class="b-amount" id="l-amount"></div>
+      </div>
+    </div>
+
+    <div class="bar-section">
+      <div class="bar-label">
+        <span>売上に占める割合</span>
+        <span id="bar-total-label"></span>
+      </div>
+      <div class="bar-track">
+        <div class="bar-fill-f" id="bar-f"></div>
+        <div class="bar-fill-l" id="bar-l"></div>
+      </div>
+      <div class="bar-legend">
+        <div class="bar-legend-item"><div class="legend-dot dot-f"></div>食材費（F）</div>
+        <div class="bar-legend-item"><div class="legend-dot dot-l"></div>人件費（L）</div>
+      </div>
+    </div>
+
+    <div class="advice-section">
+      <div id="advice-list"></div>
+    </div>
+
+  </div>
+
+  <script>
+    const F_THRESHOLD = 30; // F比率の目安
+    const L_THRESHOLD = 30; // L比率の目安
+
+    function fmt(n) {
+      return '¥' + Math.round(n).toLocaleString('ja-JP');
+    }
+
+    function calcAndShow() {
+      const sales = parseFloat(document.getElementById('sales').value);
+      const food  = parseFloat(document.getElementById('food').value);
+      const labor = parseFloat(document.getElementById('labor').value);
+
+      if (!sales || sales <= 0) { alert('月間売上を入力してください'); return; }
+      if (isNaN(food) || food < 0) { alert('食材費を入力してください'); return; }
+      if (isNaN(labor) || labor < 0) { alert('人件費を入力してください'); return; }
+
+      const fRate  = (food  / sales) * 100;
+      const lRate  = (labor / sales) * 100;
+      const flRate = fRate + lRate;
+
+      // 判定
+      let level, icon, label;
+      if (flRate < 55) {
+        level = 'good';    icon = '◎'; label = '良好';
+      } else if (flRate < 65) {
+        level = 'caution'; icon = '△'; label = '要注意';
+      } else {
+        level = 'danger';  icon = '✕'; label = '危険';
+      }
+
+      // 判定バナー
+      const verdict = document.getElementById('verdict');
+      verdict.className = 'verdict ' + level;
+      document.getElementById('verdict-icon').textContent = icon;
+      document.getElementById('verdict-label').textContent = label;
+      document.getElementById('fl-value').textContent = flRate.toFixed(1) + '%';
+
+      // 内訳
+      document.getElementById('f-rate').textContent = fRate.toFixed(1) + '%';
+      document.getElementById('f-amount').textContent = fmt(food);
+      document.getElementById('l-rate').textContent = lRate.toFixed(1) + '%';
+      document.getElementById('l-amount').textContent = fmt(labor);
+
+      // バー
+      const fW = Math.min(fRate, 100);
+      const lW = Math.min(lRate, 100 - fW);
+      document.getElementById('bar-f').style.width = fW + '%';
+      document.getElementById('bar-l').style.width = lW + '%';
+      document.getElementById('bar-l').style.left  = fW + '%';
+      document.getElementById('bar-total-label').textContent = 'FL計 ' + flRate.toFixed(1) + '%';
+
+      // アドバイス
+      const advices = [];
+
+      if (level === 'good') {
+        advices.push({ icon: '✅', text: 'FL比率は良好な水準です。この状態を維持しながら、客単価アップや回転率の改善で利益をさらに伸ばすことを検討しましょう。' });
+      }
+
+      if (fRate >= F_THRESHOLD) {
+        advices.push({ icon: '🍅', text: 'F比率（食材費）が高めです。仕入れ先の見直しや発注ロスの削減、メニューごとの原価率を再チェックしてみましょう。原価チェッカーと組み合わせると効果的です。' });
+      } else if (level !== 'good') {
+        advices.push({ icon: '🍅', text: 'F比率（食材費）は目安内に収まっています。' });
+      }
+
+      if (lRate >= L_THRESHOLD) {
+        advices.push({ icon: '👥', text: 'L比率（人件費）が高めです。ピーク時間帯に合わせたシフト調整や、仕込みの効率化で労働時間を圧縮できないか見直してみましょう。' });
+      } else if (level !== 'good') {
+        advices.push({ icon: '👥', text: 'L比率（人件費）は目安内に収まっています。' });
+      }
+
+      if (level === 'caution') {
+        advices.push({ icon: '📊', text: 'FL比率が55〜65%の注意ゾーンです。FとLのどちらが原因かを特定し、優先順位をつけて改善していきましょう。' });
+      } else if (level === 'danger') {
+        advices.push({ icon: '🚨', text: 'FL比率が65%を超えています。このままでは利益が出にくい状態です。まず食材費・人件費それぞれの高い原因を1つ特定することから始めましょう。' });
+      }
+
+      const adviceList = document.getElementById('advice-list');
+      adviceList.innerHTML = advices.map(a =>
+        `<div class="advice-item"><span class="advice-icon">${a.icon}</span><span>${a.text}</span></div>`
+      ).join('');
+
+      // 表示
+      const resultCard = document.getElementById('result-card');
+      resultCard.classList.add('visible');
+      resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      // localStorage保存
+      localStorage.setItem('fl-checker', JSON.stringify({
+        sales: document.getElementById('sales').value,
+        food:  document.getElementById('food').value,
+        labor: document.getElementById('labor').value,
+      }));
+    }
+
+    function reset() {
+      document.getElementById('sales').value = '';
+      document.getElementById('food').value  = '';
+      document.getElementById('labor').value = '';
+      document.getElementById('result-card').classList.remove('visible');
+      localStorage.removeItem('fl-checker');
+    }
+
+    document.getElementById('calc-btn').addEventListener('click', calcAndShow);
+    document.getElementById('reset-btn').addEventListener('click', reset);
+
+    // Enterキーで計算
+    ['sales', 'food', 'labor'].forEach(id => {
+      document.getElementById(id).addEventListener('keydown', e => {
+        if (e.key === 'Enter') calcAndShow();
+      });
+    });
+
+    // 前回の入力値を復元
+    const saved = localStorage.getItem('fl-checker');
+    if (saved) {
+      try {
+        const d = JSON.parse(saved);
+        document.getElementById('sales').value = d.sales || '';
+        document.getElementById('food').value  = d.food  || '';
+        document.getElementById('labor').value = d.labor || '';
+      } catch(e) {}
+    }
+  </script>
+</body>
+</html>
