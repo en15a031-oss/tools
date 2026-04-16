@@ -15,7 +15,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 40px 16px;
+      padding: 40px 16px 80px;
     }
 
     h1 {
@@ -41,75 +41,57 @@
       box-shadow: 0 2px 16px rgba(0,0,0,0.07);
     }
 
-    .mode-label {
-      font-size: 0.72rem;
-      font-weight: 600;
-      color: #888;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      margin-bottom: 10px;
-    }
-
-    .mode-tabs {
+    /* スロット */
+    .slots-row {
       display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 24px;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 28px;
     }
 
-    .mode-tab {
-      padding: 6px 14px;
-      border-radius: 20px;
-      border: 1.5px solid #ddd;
-      background: #fff;
-      font-size: 0.82rem;
+    .slot {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 2px dashed #b3cfe8;
+      background: #f0f6fc;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       cursor: pointer;
-      transition: all 0.15s;
-      color: #555;
+      padding: 12px;
+      transition: border-color 0.15s, background 0.15s;
+      text-align: center;
+      gap: 4px;
+      flex-shrink: 0;
     }
+    .slot:hover { border-color: #7aafd4; background: #e4f0fa; }
+    .slot.filled { border-style: solid; border-color: #4a8fc0; background: #e4f0fa; }
 
-    .mode-tab.active {
-      background: #2c2c2c;
-      border-color: #2c2c2c;
-      color: #fff;
-    }
-
-    .filter-row {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 24px;
-      flex-wrap: wrap;
-    }
-
-    .filter-group {
-      flex: 1;
-      min-width: 120px;
-    }
-
-    .filter-group label {
-      display: block;
-      font-size: 0.72rem;
-      color: #888;
-      margin-bottom: 6px;
+    .slot-type {
+      font-size: 0.6rem;
       font-weight: 600;
+      color: #7aafd4;
+      letter-spacing: 0.06em;
     }
 
-    .filter-group select,
-    .filter-group input {
-      width: 100%;
-      padding: 9px 12px;
-      border: 1.5px solid #e0e0e0;
-      border-radius: 10px;
-      font-size: 0.88rem;
-      background: #fafafa;
-      color: #2c2c2c;
-      appearance: none;
+    .slot-value {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #7aafd4;
+      line-height: 1.3;
+      word-break: break-all;
     }
+    .slot.filled .slot-type { color: #3a7ab0; }
+    .slot.filled .slot-value { color: #1a3f5c; }
 
-    .filter-group select:focus,
-    .filter-group input:focus {
-      outline: none;
-      border-color: #aaa;
+    .slot-cross {
+      font-size: 1.4rem;
+      font-weight: 300;
+      color: #ccc;
+      flex-shrink: 0;
     }
 
     .generate-btn {
@@ -124,16 +106,11 @@
       cursor: pointer;
       letter-spacing: 0.05em;
       transition: background 0.15s;
+      margin-bottom: 20px;
     }
+    .generate-btn:hover { background: #444; }
 
-    .generate-btn:hover {
-      background: #444;
-    }
-
-    .result-area {
-      margin-top: 20px;
-    }
-
+    /* 結果 */
     .result-hint {
       font-size: 0.78rem;
       color: #aaa;
@@ -165,61 +142,235 @@
         0 0 32px 16px rgba(180, 205, 240, 0.12);
     }
 
-    .bubble:nth-child(1) { left: calc(20% - 59px); top: 8px;   }
-    .bubble:nth-child(2) { left: calc(80% - 59px); top: 4px;   }
+    .bubble:nth-child(1) { left: calc(20% - 59px); top: 8px; }
+    .bubble:nth-child(2) { left: calc(80% - 59px); top: 4px; }
     .bubble:nth-child(3) { left: calc(50% - 59px); top: 111px; }
     .bubble:nth-child(4) { left: calc(20% - 59px); top: 214px; }
     .bubble:nth-child(5) { left: calc(80% - 59px); top: 210px; }
 
-    .b-ingredient {
-      font-size: 0.78rem;
-      font-weight: 700;
-      color: #1a1a1a;
-      line-height: 1.3;
-      word-break: break-all;
+    .b-a { font-size: 0.78rem; font-weight: 700; color: #1a1a1a; line-height: 1.3; word-break: break-all; }
+    .b-sep { font-size: 0.62rem; color: #ccc; margin: 3px 0; }
+    .b-b { font-size: 0.78rem; font-weight: 700; color: #1a1a1a; line-height: 1.3; word-break: break-all; }
+
+    /* ボトムシート */
+    .sheet-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.35);
+      z-index: 200;
     }
+    .sheet-overlay.open { display: block; }
 
-    .b-sep {
-      font-size: 0.62rem;
-      color: #ccc;
-      margin: 3px 0;
-    }
-
-    .b-dish {
-      font-size: 0.78rem;
-      font-weight: 700;
-      color: #1a1a1a;
-      line-height: 1.3;
-      word-break: break-all;
-    }
-
-    .hidden { display: none; }
-
-    .filter-group { position: relative; }
-
-    .suggest-list {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
+    .sheet {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%) translateY(100%);
+      width: 100%;
+      max-width: 480px;
       background: #fff;
-      border: 1.5px solid #aaa;
-      border-top: none;
-      border-radius: 0 0 10px 10px;
-      max-height: 200px;
+      border-radius: 20px 20px 0 0;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      z-index: 201;
+      transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+    .sheet.open { transform: translateX(-50%) translateY(0); }
+
+    .sheet-sticky {
+      padding: 20px 20px 0;
+      flex-shrink: 0;
+    }
+
+    .sheet-body {
       overflow-y: auto;
-      z-index: 100;
+      padding: 0 20px 40px;
+      flex: 1;
+    }
+
+    .sheet-handle {
+      width: 40px;
+      height: 4px;
+      background: #ddd;
+      border-radius: 2px;
+      margin: 0 auto 16px;
+    }
+
+    .sheet-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      gap: 8px;
+    }
+    .sheet-title {
+      font-size: 1rem;
+      font-weight: 700;
+      flex: 1;
+    }
+    .sheet-close {
+      background: none;
+      border: none;
+      font-size: 1.4rem;
+      cursor: pointer;
+      color: #aaa;
+      line-height: 1;
+      padding: 4px;
+    }
+    .sheet-confirm-top {
+      padding: 8px 18px;
+      border-radius: 8px;
+      border: none;
+      background: #2c2c2c;
+      color: #fff;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* 食材 / 料理名 切り替え */
+    .type-toggle {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .type-btn {
+      flex: 1;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1.5px solid #ddd;
+      background: #fff;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: #888;
+      transition: all 0.12s;
+    }
+    .type-btn.active {
+      background: #2c2c2c;
+      border-color: #2c2c2c;
+      color: #fff;
+    }
+
+    /* チェックボックスリスト */
+    .cat-block { margin-bottom: 4px; }
+
+    .cat-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 4px;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: background 0.1s;
+    }
+    .cat-row:hover { background: #f5f5f3; }
+
+    .cat-label {
+      font-size: 0.9rem;
+      font-weight: 700;
+      flex: 1;
+    }
+
+    .cat-toggle {
+      font-size: 0.8rem;
+      color: #aaa;
+    }
+
+    .sub-list {
+      padding-left: 16px;
+      padding-bottom: 6px;
       display: none;
     }
-    .suggest-list.open { display: block; }
-    .suggest-item {
-      padding: 9px 12px;
-      font-size: 0.88rem;
+    .sub-list.open { display: block; }
+
+    .sub-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 4px;
       cursor: pointer;
-      color: #2c2c2c;
+      border-radius: 8px;
+      transition: background 0.1s;
     }
-    .suggest-item:hover,
-    .suggest-item.active { background: #f0f0ee; }
+    .sub-row:hover { background: #f5f5f3; }
+
+    .sub-label {
+      font-size: 0.85rem;
+      color: #444;
+      flex: 1;
+    }
+
+    /* カスタムチェックボックス */
+    .cb {
+      width: 20px;
+      height: 20px;
+      border-radius: 5px;
+      border: 2px solid #ddd;
+      background: #fff;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.12s;
+    }
+    .cb.checked {
+      background: #2c2c2c;
+      border-color: #2c2c2c;
+    }
+    .cb.checked::after {
+      content: '';
+      width: 5px;
+      height: 9px;
+      border: 2px solid #fff;
+      border-top: none;
+      border-left: none;
+      transform: rotate(45deg) translate(-1px, -1px);
+      display: block;
+    }
+    .cb.indeterminate {
+      background: #888;
+      border-color: #888;
+    }
+    .cb.indeterminate::after {
+      content: '';
+      width: 10px;
+      height: 2px;
+      background: #fff;
+      display: block;
+    }
+
+    /* 料理名チェックリスト */
+    .origin-list { padding: 4px 0; }
+    .origin-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 4px;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: background 0.1s;
+    }
+    .origin-row:hover { background: #f5f5f3; }
+    .origin-label { font-size: 0.9rem; font-weight: 600; flex: 1; }
+
+    /* シートフッター */
+    .sheet-footer {
+      margin-top: 20px;
+    }
+    .sheet-reset {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1.5px solid #ddd;
+      background: #fff;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: #aaa;
+    }
   </style>
 </head>
 <body>
@@ -228,252 +379,318 @@
   <p class="subtitle">ランダムな組み合わせから発想のきっかけを</p>
 
   <div class="card">
-
-    <div class="mode-label">モード</div>
-    <div class="mode-tabs">
-      <button class="mode-tab active" data-mode="full-random">完全ランダム</button>
-      <button class="mode-tab" data-mode="fix-ingredient">食材固定</button>
-      <button class="mode-tab" data-mode="fix-dish">料理名固定</button>
-      <button class="mode-tab" data-mode="season">季節しばり</button>
-      <button class="mode-tab" data-mode="origin">国籍しばり</button>
-    </div>
-
-    <!-- 食材固定 -->
-    <div class="filter-row hidden" id="filter-ingredient">
-      <div class="filter-group">
-        <label>食材（入力して絞り込み、または自由入力）</label>
-        <input type="text" id="select-ingredient" placeholder="例：トマト" autocomplete="off">
+    <div class="slots-row">
+      <div class="slot" id="slot-a" onclick="openSheet(0)">
+        <div class="slot-type" id="slot-a-type">食材 / 料理名</div>
+        <div class="slot-value" id="slot-a-value">？</div>
+      </div>
+      <div class="slot-cross">×</div>
+      <div class="slot" id="slot-b" onclick="openSheet(1)">
+        <div class="slot-type" id="slot-b-type">食材 / 料理名</div>
+        <div class="slot-value" id="slot-b-value">？</div>
       </div>
     </div>
 
-    <!-- 料理名固定 -->
-    <div class="filter-row hidden" id="filter-dish">
-      <div class="filter-group">
-        <label>料理名（入力して絞り込み、または自由入力）</label>
-        <input type="text" id="select-dish" placeholder="例：リゾット" autocomplete="off">
-      </div>
-    </div>
+    <button class="generate-btn" onclick="generate()">アイデアを出す</button>
 
-    <!-- 季節しばり -->
-    <div class="filter-row hidden" id="filter-season">
-      <div class="filter-group">
-        <label>季節</label>
-        <select id="select-season">
-          <option value="">選択してください</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- 国籍しばり -->
-    <div class="filter-row hidden" id="filter-origin">
-      <div class="filter-group">
-        <label>国籍・ジャンル</label>
-        <select id="select-origin">
-          <option value="">選択してください</option>
-        </select>
-      </div>
-    </div>
-
-    <button class="generate-btn" id="generate-btn">アイデアを出す</button>
-
-    <div class="result-area" id="result-area">
+    <div id="result-area">
       <div class="result-hint">ボタンを押すと組み合わせが出ます</div>
     </div>
+  </div>
 
+  <!-- ボトムシート -->
+  <div class="sheet-overlay" id="sheet-overlay" onclick="closeSheet()"></div>
+  <div class="sheet" id="sheet">
+    <div class="sheet-sticky">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <div class="sheet-title" id="sheet-title">スロットを設定</div>
+        <button class="sheet-confirm-top" onclick="confirmSheet()">決定</button>
+        <button class="sheet-close" onclick="closeSheet()">×</button>
+      </div>
+    </div>
+
+    <div class="sheet-body">
+      <div class="type-toggle">
+        <button class="type-btn active" id="type-btn-ingredient" onclick="setSheetType('ingredient')">食材</button>
+        <button class="type-btn" id="type-btn-dish" onclick="setSheetType('dish')">料理名</button>
+      </div>
+
+      <!-- 食材チェックリスト -->
+      <div id="ingredient-list"></div>
+
+      <!-- 料理名チェックリスト -->
+      <div id="dish-list" style="display:none"></div>
+
+      <div class="sheet-footer">
+        <button class="sheet-reset" onclick="resetSheet()">リセット</button>
+      </div>
+    </div>
   </div>
 
   <script src="data.js"></script>
   <script>
-    let currentMode = 'full-random';
+    // スロット状態 { type: 'ingredient'|'dish', checks: Set }
+    const slots = [
+      { type: 'ingredient', checks: new Set() },
+      { type: 'dish',       checks: new Set() },
+    ];
 
-    // --- 表記ゆれ正規化（ひらがな→カタカナに統一して比較）---
-    function toKatakana(str) {
-      return str.replace(/[\u3041-\u3096]/g, ch =>
-        String.fromCharCode(ch.charCodeAt(0) + 0x60)
-      );
+    let currentSlot = 0;
+    let sheetType = 'ingredient';
+
+    // カテゴリの開閉状態
+    const catOpen = {};
+
+    // ---- シート開閉 ----
+    function openSheet(slotIndex) {
+      currentSlot = slotIndex;
+      // シートを開くたびに現在のスロットのtypeとchecksを引き継ぐ
+      sheetType = slots[slotIndex].type;
+      document.getElementById('sheet-title').textContent = `スロット${slotIndex === 0 ? 'A' : 'B'} を設定`;
+      document.getElementById('sheet-overlay').classList.add('open');
+      document.getElementById('sheet').classList.add('open');
+      renderSheetType();
+      renderIngredientList();
+      renderDishList();
     }
-    function normalize(str) {
-      return toKatakana(str.toLowerCase());
+
+    function closeSheet() {
+      document.getElementById('sheet-overlay').classList.remove('open');
+      document.getElementById('sheet').classList.remove('open');
     }
-    function matches(candidate, query) {
-      return normalize(candidate).includes(normalize(query));
+
+    // ---- タイプ切り替え ----
+    function setSheetType(type) {
+      sheetType = type;
+      renderSheetType();
     }
 
-    // --- カスタムサジェスト ---
-    function setupAutocomplete(inputId, names) {
-      const input = document.getElementById(inputId);
-      const list = document.createElement('div');
-      list.className = 'suggest-list';
-      input.parentNode.appendChild(list);
+    function renderSheetType() {
+      document.getElementById('type-btn-ingredient').classList.toggle('active', sheetType === 'ingredient');
+      document.getElementById('type-btn-dish').classList.toggle('active', sheetType === 'dish');
+      document.getElementById('ingredient-list').style.display = sheetType === 'ingredient' ? '' : 'none';
+      document.getElementById('dish-list').style.display = sheetType === 'dish' ? '' : 'none';
+    }
 
-      let activeIndex = -1;
+    // ---- 食材リスト描画 ----
+    function renderIngredientList() {
+      const checks = slots[currentSlot].type === 'ingredient' ? slots[currentSlot].checks : new Set();
+      const container = document.getElementById('ingredient-list');
+      container.innerHTML = '';
 
-      function renderList(query) {
-        activeIndex = -1;
-        if (!query) { list.classList.remove('open'); return; }
-        const matched = names.filter(n => matches(n, query)).slice(0, 12);
-        if (!matched.length) { list.classList.remove('open'); return; }
-        list.innerHTML = matched.map(n => `<div class="suggest-item">${n}</div>`).join('');
-        list.classList.add('open');
-        list.querySelectorAll('.suggest-item').forEach(item => {
-          item.addEventListener('mousedown', e => {
-            e.preventDefault();
-            input.value = item.textContent;
-            list.classList.remove('open');
+      DATA.categories.forEach(cat => {
+        const block = document.createElement('div');
+        block.className = 'cat-block';
+
+        // カテゴリの選択状態
+        const subKeys = cat.subs.map(s => cat.name + '::' + s);
+        const allChecked = cat.subs.length === 0
+          ? checks.has(cat.name)
+          : subKeys.every(k => checks.has(k));
+        const someChecked = cat.subs.length === 0
+          ? checks.has(cat.name)
+          : subKeys.some(k => checks.has(k));
+
+        // カテゴリ行
+        const catRow = document.createElement('div');
+        catRow.className = 'cat-row';
+        catRow.innerHTML = `
+          <div class="cb ${allChecked ? 'checked' : someChecked ? 'indeterminate' : ''}"></div>
+          <div class="cat-label">${cat.name}</div>
+          ${cat.subs.length > 0 ? `<div class="cat-toggle">${catOpen[cat.name] ? '▲' : '▼'}</div>` : ''}
+        `;
+        catRow.addEventListener('click', (e) => {
+          if (cat.subs.length > 0) {
+            // サブあり：チェック部分は全選択トグル、それ以外は開閉
+            catOpen[cat.name] = !catOpen[cat.name];
+            // チェックボックスエリアのクリックは全選択トグル
+          }
+          toggleCategory(cat, allChecked);
+        });
+
+        // チェックボックスのみクリックで全選択トグル（開閉は別）
+        if (cat.subs.length > 0) {
+          catRow.addEventListener('click', (e) => {
+            // 既にtoggleCategoryが呼ばれているので追加処理不要
           });
+          // チェックボックスだけ別イベント
+          const cbEl = catRow.querySelector('.cb');
+          cbEl.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleCategory(cat, allChecked);
+            renderIngredientList();
+          });
+          // ラベル・トグルアイコンで開閉
+          const labelEl = catRow.querySelector('.cat-label');
+          const toggleEl = catRow.querySelector('.cat-toggle');
+          [labelEl, toggleEl].forEach(el => {
+            el.addEventListener('click', (e) => {
+              e.stopPropagation();
+              catOpen[cat.name] = !catOpen[cat.name];
+              renderIngredientList();
+            });
+          });
+          catRow.removeEventListener('click', catRow._handler);
+          catRow._handler = null;
+        }
+
+        block.appendChild(catRow);
+
+        // サブカテゴリリスト
+        if (cat.subs.length > 0) {
+          const subList = document.createElement('div');
+          subList.className = 'sub-list' + (catOpen[cat.name] ? ' open' : '');
+          cat.subs.forEach(sub => {
+            const key = cat.name + '::' + sub;
+            const isChecked = checks.has(key);
+            const subRow = document.createElement('div');
+            subRow.className = 'sub-row';
+            subRow.innerHTML = `
+              <div class="cb ${isChecked ? 'checked' : ''}"></div>
+              <div class="sub-label">${sub}</div>
+            `;
+            subRow.addEventListener('click', () => {
+              toggleSub(key, isChecked, cat);
+              renderIngredientList();
+            });
+            subList.appendChild(subRow);
+          });
+          block.appendChild(subList);
+        }
+
+        container.appendChild(block);
+      });
+    }
+
+    function toggleCategory(cat, allChecked) {
+      const checks = slots[currentSlot].checks;
+      if (cat.subs.length === 0) {
+        allChecked ? checks.delete(cat.name) : checks.add(cat.name);
+      } else {
+        cat.subs.forEach(sub => {
+          const key = cat.name + '::' + sub;
+          allChecked ? checks.delete(key) : checks.add(key);
         });
       }
-
-      input.addEventListener('input', () => renderList(input.value.trim()));
-
-      input.addEventListener('keydown', e => {
-        const items = list.querySelectorAll('.suggest-item');
-        if (!items.length) return;
-        if (e.key === 'ArrowDown') {
-          e.preventDefault();
-          activeIndex = Math.min(activeIndex + 1, items.length - 1);
-        } else if (e.key === 'ArrowUp') {
-          e.preventDefault();
-          activeIndex = Math.max(activeIndex - 1, 0);
-        } else if (e.key === 'Enter' && activeIndex >= 0) {
-          e.preventDefault();
-          input.value = items[activeIndex].textContent;
-          list.classList.remove('open');
-          activeIndex = -1;
-          return;
-        } else if (e.key === 'Escape') {
-          list.classList.remove('open');
-          return;
-        }
-        items.forEach((item, i) => item.classList.toggle('active', i === activeIndex));
-      });
-
-      input.addEventListener('blur', () => {
-        setTimeout(() => list.classList.remove('open'), 150);
-      });
+      renderIngredientList();
     }
 
-    // セレクトボックスを初期化
-    function initSelects() {
-      setupAutocomplete('select-ingredient', DATA.ingredients.map(i => i.name));
-      setupAutocomplete('select-dish', DATA.dishes.map(d => d.name));
-
-      const seasonSelect = document.getElementById('select-season');
-      DATA.seasons.forEach(s => {
-        const opt = document.createElement('option');
-        opt.value = s;
-        opt.textContent = s;
-        seasonSelect.appendChild(opt);
-      });
-
-      const originSelect = document.getElementById('select-origin');
-      DATA.origins.forEach(o => {
-        const opt = document.createElement('option');
-        opt.value = o;
-        opt.textContent = o;
-        originSelect.appendChild(opt);
-      });
+    function toggleSub(key, isChecked, cat) {
+      const checks = slots[currentSlot].checks;
+      isChecked ? checks.delete(key) : checks.add(key);
     }
 
-    // モード切り替え
-    document.querySelectorAll('.mode-tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        currentMode = tab.dataset.mode;
-
-        // フィルター表示切り替え
-        document.getElementById('filter-ingredient').classList.add('hidden');
-        document.getElementById('filter-dish').classList.add('hidden');
-        document.getElementById('filter-season').classList.add('hidden');
-        document.getElementById('filter-origin').classList.add('hidden');
-
-        if (currentMode === 'fix-ingredient') document.getElementById('filter-ingredient').classList.remove('hidden');
-        if (currentMode === 'fix-dish') document.getElementById('filter-dish').classList.remove('hidden');
-        if (currentMode === 'season') document.getElementById('filter-season').classList.remove('hidden');
-        if (currentMode === 'origin') document.getElementById('filter-origin').classList.remove('hidden');
-
-        document.getElementById('result-area').innerHTML = '<div class="result-hint">ボタンを押すと組み合わせが出ます</div>';
+    // ---- 料理名リスト描画 ----
+    function renderDishList() {
+      const checks = slots[currentSlot].type === 'dish' ? slots[currentSlot].checks : new Set();
+      const container = document.getElementById('dish-list');
+      container.innerHTML = '';
+      const list = document.createElement('div');
+      list.className = 'origin-list';
+      DATA.origins.forEach(origin => {
+        const isChecked = checks.has(origin);
+        const row = document.createElement('div');
+        row.className = 'origin-row';
+        row.innerHTML = `
+          <div class="cb ${isChecked ? 'checked' : ''}"></div>
+          <div class="origin-label">${origin}</div>
+        `;
+        row.addEventListener('click', () => {
+          isChecked ? checks.delete(origin) : checks.add(origin);
+          renderDishList();
+        });
+        list.appendChild(row);
       });
-    });
+      container.appendChild(list);
+    }
 
+    // ---- リセット ----
+    function resetSheet() {
+      slots[currentSlot].checks.clear();
+      renderIngredientList();
+      renderDishList();
+    }
+
+    // ---- 決定 ----
+    function confirmSheet() {
+      slots[currentSlot].type = sheetType;
+      updateSlotDisplay(currentSlot);
+      closeSheet();
+    }
+
+    function updateSlotDisplay(index) {
+      const slot = slots[index];
+      const checks = slot.checks;
+      const typeLabel = slot.type === 'ingredient' ? '食材' : '料理名';
+      const slotEl = document.getElementById(`slot-${index === 0 ? 'a' : 'b'}`);
+      const typeEl = document.getElementById(`slot-${index === 0 ? 'a' : 'b'}-type`);
+      const valEl  = document.getElementById(`slot-${index === 0 ? 'a' : 'b'}-value`);
+
+      if (checks.size === 0) {
+        typeEl.textContent = '';
+        valEl.textContent = '？';
+        slotEl.classList.remove('filled');
+      } else {
+        typeEl.textContent = typeLabel;
+        const labels = [...checks].map(k => k.includes('::') ? k.split('::')[1] : k);
+        valEl.textContent = labels.slice(0, 3).join('・') + (labels.length > 3 ? '…' : '');
+        slotEl.classList.add('filled');
+      }
+    }
+
+    // ---- 生成 ----
     function pickRandom(arr) {
       return arr[Math.floor(Math.random() * arr.length)];
     }
 
-    function showResults(pairs) {
-      const area = document.getElementById('result-area');
+    function getPool(slot) {
+      if (slot.type === 'ingredient') {
+        const checks = slot.checks;
+        if (checks.size === 0) return DATA.ingredients;
+        return DATA.ingredients.filter(ing => {
+          for (const key of checks) {
+            if (key.includes('::')) {
+              const [cat, sub] = key.split('::');
+              if (ing.category === cat && ing.sub === sub) return true;
+            } else {
+              if (ing.category === key) return true;
+            }
+          }
+          return false;
+        });
+      } else {
+        const checks = slot.checks;
+        if (checks.size === 0) return DATA.dishes;
+        return DATA.dishes.filter(d => d.origins.some(o => checks.has(o)));
+      }
+    }
+
+    function generate() {
+      const poolA = getPool(slots[0]);
+      const poolB = getPool(slots[1]);
+      if (!poolA.length || !poolB.length) {
+        document.getElementById('result-area').innerHTML =
+          '<div class="result-hint">条件に合う候補がありません</div>';
+        return;
+      }
+      const pairs = Array.from({ length: 5 }, () => ({
+        a: pickRandom(poolA).name,
+        b: pickRandom(poolB).name,
+      }));
       const bubbles = pairs.map(p => `
         <div class="bubble">
-          <span class="b-ingredient">${p.ingredient}</span>
+          <span class="b-a">${p.a}</span>
           <span class="b-sep">×</span>
-          <span class="b-dish">${p.dish}</span>
+          <span class="b-b">${p.b}</span>
         </div>`).join('');
-      area.innerHTML = `<div class="bubble-area">${bubbles}</div>`;
+      document.getElementById('result-area').innerHTML =
+        `<div class="bubble-area">${bubbles}</div>`;
     }
 
-    function showError(msg) {
-      document.getElementById('result-area').innerHTML = `<div class="result-hint">${msg}</div>`;
-    }
-
-    document.getElementById('generate-btn').addEventListener('click', () => {
-      if (currentMode === 'full-random') {
-        const pairs = Array.from({ length: 5 }, () => {
-          const ingredient = pickRandom(DATA.ingredients);
-          const dish = pickRandom(DATA.dishes);
-          return { ingredient: ingredient.name, dish: dish.name, tags: [...new Set([...ingredient.seasons, ...dish.origins])] };
-        });
-        showResults(pairs);
-
-      } else if (currentMode === 'fix-ingredient') {
-        const val = document.getElementById('select-ingredient').value.trim();
-        if (!val) return showError('食材を入力してください');
-        const found = DATA.ingredients.find(i => i.name === val);
-        const ingredient = found ? found : { name: val, seasons: [] };
-        const pairs = Array.from({ length: 5 }, () => {
-          const dish = pickRandom(DATA.dishes);
-          return { ingredient: ingredient.name, dish: dish.name, tags: [...new Set([...ingredient.seasons, ...dish.origins])] };
-        });
-        showResults(pairs);
-
-      } else if (currentMode === 'fix-dish') {
-        const val = document.getElementById('select-dish').value.trim();
-        if (!val) return showError('料理名を入力してください');
-        const found = DATA.dishes.find(d => d.name === val);
-        const dish = found ? found : { name: val, origins: [] };
-        const pairs = Array.from({ length: 5 }, () => {
-          const ingredient = pickRandom(DATA.ingredients);
-          return { ingredient: ingredient.name, dish: dish.name, tags: [...new Set([...ingredient.seasons, ...dish.origins])] };
-        });
-        showResults(pairs);
-
-      } else if (currentMode === 'season') {
-        const val = document.getElementById('select-season').value;
-        if (!val) return showError('季節を選んでください');
-        const filtered = DATA.ingredients.filter(i => i.seasons.includes(val) || i.seasons.includes('通年'));
-        if (!filtered.length) return showError('該当する食材がありません');
-        const pairs = Array.from({ length: 5 }, () => {
-          const ingredient = pickRandom(filtered);
-          const dish = pickRandom(DATA.dishes);
-          return { ingredient: ingredient.name, dish: dish.name, tags: [...new Set([val, ...dish.origins])] };
-        });
-        showResults(pairs);
-
-      } else if (currentMode === 'origin') {
-        const val = document.getElementById('select-origin').value;
-        if (!val) return showError('国籍を選んでください');
-        const filtered = DATA.dishes.filter(d => d.origins.includes(val));
-        if (!filtered.length) return showError('該当する料理がありません');
-        const pairs = Array.from({ length: 5 }, () => {
-          const dish = pickRandom(filtered);
-          const ingredient = pickRandom(DATA.ingredients);
-          return { ingredient: ingredient.name, dish: dish.name, tags: [...new Set([...ingredient.seasons, val])] };
-        });
-        showResults(pairs);
-      }
-    });
-
-    initSelects();
+    // 初期表示
+    updateSlotDisplay(0);
+    updateSlotDisplay(1);
   </script>
 </body>
 </html>
