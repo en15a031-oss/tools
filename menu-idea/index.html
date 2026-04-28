@@ -342,6 +342,14 @@
       display: block;
     }
 
+    /* 料理名フィルター セクションラベル */
+    .filter-section-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #aaa;
+      margin: 12px 0 6px;
+    }
+
     /* 料理名チェックリスト */
     .origin-list { padding: 4px 0; }
     .origin-row {
@@ -370,6 +378,62 @@
       font-weight: 600;
       cursor: pointer;
       color: #aaa;
+    }
+
+    /* 季節フィルター */
+    .season-pills {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .season-pill {
+      padding: 5px 14px;
+      border-radius: 20px;
+      border: 1.5px solid #ddd;
+      background: #fff;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: #888;
+      transition: all 0.12s;
+    }
+    .season-pill.active {
+      background: #2c2c2c;
+      border-color: #2c2c2c;
+      color: #fff;
+    }
+
+    /* 食材検索結果 */
+    .ing-cat-label {
+      font-size: 0.7rem;
+      color: #bbb;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .no-result {
+      font-size: 0.85rem;
+      color: #bbb;
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    /* 食材検索 */
+    .ingredient-search {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1.5px solid #ddd;
+      background: #f9f9f7;
+      font-size: 0.88rem;
+      outline: none;
+      margin-bottom: 12px;
+      box-sizing: border-box;
+      transition: border-color 0.12s, background 0.12s;
+    }
+    .ingredient-search:focus {
+      border-color: #aaa;
+      background: #fff;
     }
   </style>
 </head>
@@ -416,8 +480,50 @@
         <button class="type-btn" id="type-btn-dish" onclick="setSheetType('dish')">料理名</button>
       </div>
 
+      <!-- 食材検索 -->
+      <input type="text" id="ingredient-search" class="ingredient-search"
+             placeholder="食材を検索..." oninput="onIngredientSearch(this.value)" style="display:none">
+
+      <!-- 季節フィルター -->
+      <div id="season-pills" class="season-pills" style="display:none">
+        <button class="season-pill active" id="pill-all" onclick="setSeasonFilter(null)">すべて</button>
+        <button class="season-pill" id="pill-春" onclick="setSeasonFilter('春')">春</button>
+        <button class="season-pill" id="pill-夏" onclick="setSeasonFilter('夏')">夏</button>
+        <button class="season-pill" id="pill-秋" onclick="setSeasonFilter('秋')">秋</button>
+        <button class="season-pill" id="pill-冬" onclick="setSeasonFilter('冬')">冬</button>
+      </div>
+
       <!-- 食材チェックリスト -->
       <div id="ingredient-list"></div>
+
+      <!-- 料理名フィルター（温度・コース・調理法） -->
+      <div id="dish-filter-area" style="display:none">
+        <div class="filter-section-label">温度</div>
+        <div class="season-pills" id="dish-temp-pills">
+          <button class="season-pill active" data-val="null" onclick="setDishFilter('temp', null)">すべて</button>
+          <button class="season-pill" data-val="温" onclick="setDishFilter('temp', '温')">温</button>
+          <button class="season-pill" data-val="冷" onclick="setDishFilter('temp', '冷')">冷</button>
+        </div>
+        <div class="filter-section-label">コース</div>
+        <div class="season-pills" id="dish-course-pills">
+          <button class="season-pill active" data-val="null" onclick="setDishFilter('course', null)">すべて</button>
+          <button class="season-pill" data-val="前菜" onclick="setDishFilter('course', '前菜')">前菜</button>
+          <button class="season-pill" data-val="スープ" onclick="setDishFilter('course', 'スープ')">スープ</button>
+          <button class="season-pill" data-val="メイン" onclick="setDishFilter('course', 'メイン')">メイン</button>
+          <button class="season-pill" data-val="副菜" onclick="setDishFilter('course', '副菜')">副菜</button>
+        </div>
+        <div class="filter-section-label">調理法</div>
+        <div class="season-pills" id="dish-method-pills">
+          <button class="season-pill active" data-val="null" onclick="setDishFilter('method', null)">すべて</button>
+          <button class="season-pill" data-val="生食" onclick="setDishFilter('method', '生食')">生食</button>
+          <button class="season-pill" data-val="焼く" onclick="setDishFilter('method', '焼く')">焼く</button>
+          <button class="season-pill" data-val="煮る" onclick="setDishFilter('method', '煮る')">煮る</button>
+          <button class="season-pill" data-val="蒸す" onclick="setDishFilter('method', '蒸す')">蒸す</button>
+          <button class="season-pill" data-val="揚げる" onclick="setDishFilter('method', '揚げる')">揚げる</button>
+          <button class="season-pill" data-val="和える" onclick="setDishFilter('method', '和える')">和える</button>
+          <button class="season-pill" data-val="炒める" onclick="setDishFilter('method', '炒める')">炒める</button>
+        </div>
+      </div>
 
       <!-- 料理名チェックリスト -->
       <div id="dish-list" style="display:none"></div>
@@ -432,8 +538,8 @@
   <script>
     // スロット状態 { type: 'ingredient'|'dish', checks: Set }
     const slots = [
-      { type: 'ingredient', checks: new Set() },
-      { type: 'dish',       checks: new Set() },
+      { type: 'ingredient', checks: new Set(), seasonFilter: null, dishTempFilter: null, dishCourseFilter: null, dishMethodFilter: null },
+      { type: 'dish',       checks: new Set(), seasonFilter: null, dishTempFilter: null, dishCourseFilter: null, dishMethodFilter: null },
     ];
 
     let currentSlot = 0;
@@ -442,14 +548,19 @@
     // カテゴリの開閉状態
     const catOpen = {};
 
+    let searchText = '';
+
     // ---- シート開閉 ----
     function openSheet(slotIndex) {
       currentSlot = slotIndex;
-      // シートを開くたびに現在のスロットのtypeとchecksを引き継ぐ
       sheetType = slots[slotIndex].type;
+      searchText = '';
+      document.getElementById('ingredient-search').value = '';
       document.getElementById('sheet-title').textContent = `スロット${slotIndex === 0 ? 'A' : 'B'} を設定`;
       document.getElementById('sheet-overlay').classList.add('open');
       document.getElementById('sheet').classList.add('open');
+      syncSeasonPills();
+      syncDishPills();
       renderSheetType();
       renderIngredientList();
       renderDishList();
@@ -471,6 +582,123 @@
       document.getElementById('type-btn-dish').classList.toggle('active', sheetType === 'dish');
       document.getElementById('ingredient-list').style.display = sheetType === 'ingredient' ? '' : 'none';
       document.getElementById('dish-list').style.display = sheetType === 'dish' ? '' : 'none';
+      document.getElementById('season-pills').style.display = sheetType === 'ingredient' ? '' : 'none';
+      document.getElementById('ingredient-search').style.display = sheetType === 'ingredient' ? '' : 'none';
+      document.getElementById('dish-filter-area').style.display = sheetType === 'dish' ? '' : 'none';
+    }
+
+    function syncDishPills() {
+      const slot = slots[currentSlot];
+      [
+        ['dish-temp-pills',   'dishTempFilter'],
+        ['dish-course-pills', 'dishCourseFilter'],
+        ['dish-method-pills', 'dishMethodFilter'],
+      ].forEach(([id, key]) => {
+        const val = slot[key];
+        document.getElementById(id).querySelectorAll('.season-pill').forEach(btn => {
+          btn.classList.toggle('active', (btn.dataset.val === 'null' ? null : btn.dataset.val) === val);
+        });
+      });
+    }
+
+    function setDishFilter(dim, value) {
+      const key = dim === 'temp' ? 'dishTempFilter' : dim === 'course' ? 'dishCourseFilter' : 'dishMethodFilter';
+      slots[currentSlot][key] = value;
+      syncDishPills();
+      renderDishList();
+      updateSlotDisplay(currentSlot);
+    }
+
+    function onIngredientSearch(val) {
+      searchText = val.trim();
+      renderIngredientList();
+    }
+
+    // ひらがな→カタカナに統一して比較（表記ゆれ対応）
+    function normalizeJP(str) {
+      return str.toLowerCase().replace(/[ぁ-ゖ]/g, ch =>
+        String.fromCharCode(ch.charCodeAt(0) + 0x60)
+      );
+    }
+
+    // 漢字→読みの文字単位変換マップ（長いものを先に置く）
+    const CHAR_MAP = [
+      ['骨髄', 'コツズイ'], ['軟骨', 'ナンコツ'], ['手羽', 'テバ'],
+      ['大根', 'ダイコン'], ['白菜', 'ハクサイ'],
+      ['豚', 'ブタ'], ['鶏', 'トリ'], ['牛', 'ギュウ'],
+      ['鴨', 'カモ'], ['鹿', 'シカ'], ['猪', 'イノシシ'],
+      ['馬', 'ウマ'], ['兎', 'ウサギ'], ['鳩', 'ハト'],
+      ['肉', 'ニク'], ['皮', 'カワ'], ['骨', 'ホネ'],
+      ['足', 'アシ'], ['耳', 'ミミ'], ['頬', 'ホホ'],
+      ['胸', 'ムネ'], ['菊', 'キク'], ['花', 'ハナ'],
+      ['砂', 'スナ'],
+    ];
+
+    // 食材名の漢字を読みに変換してから正規化
+    function normalizeIngName(name) {
+      let s = name;
+      for (const [kanji, kana] of CHAR_MAP) {
+        s = s.split(kanji).join(kana);
+      }
+      return normalizeJP(s);
+    }
+
+    // 食材名が検索ワードにマッチするか（読みがな・漢字置換も考慮）
+    function ingMatches(ing, st) {
+      if (normalizeJP(ing.name).includes(st)) return true;
+      if (normalizeIngName(ing.name).includes(st)) return true;
+      const yomi = DATA.yomi[ing.name];
+      if (yomi && normalizeJP(yomi).includes(st)) return true;
+      return false;
+    }
+
+    function syncSeasonPills() {
+      const sf = slots[currentSlot].seasonFilter;
+      document.getElementById('pill-all').classList.toggle('active', sf === null);
+      ['春', '夏', '秋', '冬'].forEach(s => {
+        document.getElementById('pill-' + s).classList.toggle('active', sf === s);
+      });
+    }
+
+    function setSeasonFilter(season) {
+      slots[currentSlot].seasonFilter = season;
+      syncSeasonPills();
+      renderIngredientList();
+    }
+
+    function getFilteredCategories() {
+      const sf = slots[currentSlot].seasonFilter;
+      const st = normalizeJP(searchText);
+
+      let pool = DATA.ingredients;
+      if (sf) {
+        pool = pool.filter(ing => ing.seasons.includes(sf) || ing.seasons.includes('通年'));
+      }
+
+      return DATA.categories.map(cat => {
+        const catIngs = pool.filter(ing => ing.category === cat.name);
+        if (catIngs.length === 0) return null;
+
+        if (!st) {
+          const availableSubs = cat.subs.filter(sub => catIngs.some(ing => ing.sub === sub));
+          return { name: cat.name, subs: availableSubs };
+        }
+
+        // カテゴリ名がヒットする場合は配下のサブをすべて表示
+        if (normalizeJP(cat.name).includes(st)) {
+          const availableSubs = cat.subs.filter(sub => catIngs.some(ing => ing.sub === sub));
+          return { name: cat.name, subs: availableSubs };
+        }
+
+        // サブ名 or 食材名がヒットするサブのみ表示
+        const matchingSubs = cat.subs.filter(sub => {
+          if (normalizeJP(sub).includes(st)) return catIngs.some(ing => ing.sub === sub);
+          return catIngs.filter(ing => ing.sub === sub).some(ing => ingMatches(ing, st));
+        });
+
+        if (matchingSubs.length === 0) return null;
+        return { name: cat.name, subs: matchingSubs };
+      }).filter(Boolean);
     }
 
     // ---- 食材リスト描画 ----
@@ -479,7 +707,14 @@
       const container = document.getElementById('ingredient-list');
       container.innerHTML = '';
 
-      DATA.categories.forEach(cat => {
+      // 検索中は食材名フラットリストを表示
+      if (searchText) {
+        renderIngredientSearchResults(container, checks);
+        return;
+      }
+
+      const filteredCats = getFilteredCategories();
+      filteredCats.forEach(cat => {
         const block = document.createElement('div');
         block.className = 'cat-block';
 
@@ -563,6 +798,41 @@
       });
     }
 
+    function renderIngredientSearchResults(container, checks) {
+      const sf = slots[currentSlot].seasonFilter;
+      const st = normalizeJP(searchText);
+
+      let pool = DATA.ingredients;
+      if (sf) {
+        pool = pool.filter(ing => ing.seasons.includes(sf) || ing.seasons.includes('通年'));
+      }
+      const matched = pool.filter(ing => ingMatches(ing, st));
+
+      if (matched.length === 0) {
+        container.innerHTML = '<div class="no-result">見つかりませんでした</div>';
+        return;
+      }
+
+      matched.forEach(ing => {
+        const key = '::' + ing.name;
+        const isChecked = checks.has(key);
+        const row = document.createElement('div');
+        row.className = 'sub-row';
+        const catLabel = ing.sub ? `${ing.category}・${ing.sub}` : ing.category;
+        row.innerHTML = `
+          <div class="cb ${isChecked ? 'checked' : ''}"></div>
+          <div class="sub-label">${ing.name}</div>
+          <div class="ing-cat-label">${catLabel}</div>
+        `;
+        row.addEventListener('click', () => {
+          isChecked ? checks.delete(key) : checks.add(key);
+          renderIngredientList();
+          updateSlotDisplay(currentSlot);
+        });
+        container.appendChild(row);
+      });
+    }
+
     function toggleCategory(cat, allChecked) {
       const checks = slots[currentSlot].checks;
       if (cat.subs.length === 0) {
@@ -584,30 +854,51 @@
     // ---- 料理名リスト描画 ----
     function renderDishList() {
       const checks = slots[currentSlot].type === 'dish' ? slots[currentSlot].checks : new Set();
+      const slot = slots[currentSlot];
       const container = document.getElementById('dish-list');
       container.innerHTML = '';
+
+      let pool = DATA.dishes;
+      if (slot.dishTempFilter)   pool = pool.filter(d => d.temp && d.temp.includes(slot.dishTempFilter));
+      if (slot.dishCourseFilter) pool = pool.filter(d => d.course && d.course.includes(slot.dishCourseFilter));
+      if (slot.dishMethodFilter) pool = pool.filter(d => d.method && d.method.includes(slot.dishMethodFilter));
+
+      const availableOrigins = DATA.origins.filter(o => pool.some(d => d.origins.includes(o)));
+
       const list = document.createElement('div');
       list.className = 'origin-list';
-      DATA.origins.forEach(origin => {
-        const isChecked = checks.has(origin);
-        const row = document.createElement('div');
-        row.className = 'origin-row';
-        row.innerHTML = `
-          <div class="cb ${isChecked ? 'checked' : ''}"></div>
-          <div class="origin-label">${origin}</div>
-        `;
-        row.addEventListener('click', () => {
-          isChecked ? checks.delete(origin) : checks.add(origin);
-          renderDishList();
+
+      if (availableOrigins.length === 0) {
+        list.innerHTML = '<div class="no-result">該当する料理がありません</div>';
+      } else {
+        availableOrigins.forEach(origin => {
+          const isChecked = checks.has(origin);
+          const row = document.createElement('div');
+          row.className = 'origin-row';
+          row.innerHTML = `
+            <div class="cb ${isChecked ? 'checked' : ''}"></div>
+            <div class="origin-label">${origin}</div>
+          `;
+          row.addEventListener('click', () => {
+            isChecked ? checks.delete(origin) : checks.add(origin);
+            renderDishList();
+            updateSlotDisplay(currentSlot);
+          });
+          list.appendChild(row);
         });
-        list.appendChild(row);
-      });
+      }
       container.appendChild(list);
     }
 
     // ---- リセット ----
     function resetSheet() {
       slots[currentSlot].checks.clear();
+      slots[currentSlot].seasonFilter = null;
+      slots[currentSlot].dishTempFilter = null;
+      slots[currentSlot].dishCourseFilter = null;
+      slots[currentSlot].dishMethodFilter = null;
+      syncSeasonPills();
+      syncDishPills();
       renderIngredientList();
       renderDishList();
     }
@@ -615,6 +906,14 @@
     // ---- 決定 ----
     function confirmSheet() {
       slots[currentSlot].type = sheetType;
+      if (sheetType === 'dish') {
+        slots[currentSlot].seasonFilter = null;
+      }
+      if (sheetType === 'ingredient') {
+        slots[currentSlot].dishTempFilter = null;
+        slots[currentSlot].dishCourseFilter = null;
+        slots[currentSlot].dishMethodFilter = null;
+      }
       updateSlotDisplay(currentSlot);
       closeSheet();
     }
@@ -622,19 +921,35 @@
     function updateSlotDisplay(index) {
       const slot = slots[index];
       const checks = slot.checks;
-      const typeLabel = slot.type === 'ingredient' ? '食材' : '料理名';
+      const seasonLabel = slot.type === 'ingredient' && slot.seasonFilter ? `${slot.seasonFilter}の` : '';
+      let typeLabel;
+      if (slot.type === 'ingredient') {
+        typeLabel = `${seasonLabel}食材`;
+      } else {
+        const dishParts = [slot.dishTempFilter, slot.dishCourseFilter, slot.dishMethodFilter].filter(Boolean);
+        const dishLabel = dishParts.length > 0 ? `${dishParts.join('・')}の` : '';
+        typeLabel = `${dishLabel}料理名`;
+      }
       const slotEl = document.getElementById(`slot-${index === 0 ? 'a' : 'b'}`);
       const typeEl = document.getElementById(`slot-${index === 0 ? 'a' : 'b'}-type`);
       const valEl  = document.getElementById(`slot-${index === 0 ? 'a' : 'b'}-value`);
 
-      if (checks.size === 0) {
+      const hasDishFilter = slot.dishTempFilter || slot.dishCourseFilter || slot.dishMethodFilter;
+      const hasFilter = checks.size > 0 || slot.seasonFilter || hasDishFilter;
+      if (!hasFilter) {
         typeEl.textContent = '';
         valEl.textContent = '？';
         slotEl.classList.remove('filled');
       } else {
         typeEl.textContent = typeLabel;
-        const labels = [...checks].map(k => k.includes('::') ? k.split('::')[1] : k);
-        valEl.textContent = labels.slice(0, 3).join('・') + (labels.length > 3 ? '…' : '');
+        if (checks.size === 0) {
+          valEl.textContent = 'すべて';
+        } else {
+          const labels = [...checks].map(k =>
+            k.startsWith('::') ? k.slice(2) : k.includes('::') ? k.split('::')[1] : k
+          );
+          valEl.textContent = labels.slice(0, 3).join('・') + (labels.length > 3 ? '…' : '');
+        }
         slotEl.classList.add('filled');
       }
     }
@@ -646,11 +961,19 @@
 
     function getPool(slot) {
       if (slot.type === 'ingredient') {
+        let pool = DATA.ingredients;
+        if (slot.seasonFilter) {
+          pool = pool.filter(ing =>
+            ing.seasons.includes(slot.seasonFilter) || ing.seasons.includes('通年')
+          );
+        }
         const checks = slot.checks;
-        if (checks.size === 0) return DATA.ingredients;
-        return DATA.ingredients.filter(ing => {
+        if (checks.size === 0) return pool;
+        return pool.filter(ing => {
           for (const key of checks) {
-            if (key.includes('::')) {
+            if (key.startsWith('::')) {
+              if (ing.name === key.slice(2)) return true;
+            } else if (key.includes('::')) {
               const [cat, sub] = key.split('::');
               if (ing.category === cat && ing.sub === sub) return true;
             } else {
@@ -660,9 +983,13 @@
           return false;
         });
       } else {
+        let pool = DATA.dishes;
+        if (slot.dishTempFilter)   pool = pool.filter(d => d.temp && d.temp.includes(slot.dishTempFilter));
+        if (slot.dishCourseFilter) pool = pool.filter(d => d.course && d.course.includes(slot.dishCourseFilter));
+        if (slot.dishMethodFilter) pool = pool.filter(d => d.method && d.method.includes(slot.dishMethodFilter));
         const checks = slot.checks;
-        if (checks.size === 0) return DATA.dishes;
-        return DATA.dishes.filter(d => d.origins.some(o => checks.has(o)));
+        if (checks.size === 0) return pool;
+        return pool.filter(d => d.origins.some(o => checks.has(o)));
       }
     }
 
