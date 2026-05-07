@@ -604,6 +604,21 @@
     function setDishFilter(dim, value) {
       const key = dim === 'temp' ? 'dishTempFilter' : dim === 'course' ? 'dishCourseFilter' : 'dishMethodFilter';
       slots[currentSlot][key] = value;
+
+      // フィルター組み合わせが空になる場合は他のフィルターをリセット
+      const slot = slots[currentSlot];
+      let pool = DATA.dishes;
+      if (slot.dishTempFilter)   pool = pool.filter(d => d.temp && d.temp.includes(slot.dishTempFilter));
+      if (slot.dishCourseFilter) pool = pool.filter(d => d.course && d.course.includes(slot.dishCourseFilter));
+      if (slot.dishMethodFilter) pool = pool.filter(d => d.method && d.method.includes(slot.dishMethodFilter));
+
+      if (pool.length === 0) {
+        // 新しく選んだフィルターだけ残して他をリセット
+        if (key !== 'dishTempFilter')   slot.dishTempFilter = null;
+        if (key !== 'dishCourseFilter') slot.dishCourseFilter = null;
+        if (key !== 'dishMethodFilter') slot.dishMethodFilter = null;
+      }
+
       syncDishPills();
       renderDishList();
       updateSlotDisplay(currentSlot);
@@ -853,7 +868,6 @@
 
     // ---- 料理名リスト描画 ----
     function renderDishList() {
-      const checks = slots[currentSlot].type === 'dish' ? slots[currentSlot].checks : new Set();
       const slot = slots[currentSlot];
       const container = document.getElementById('dish-list');
       container.innerHTML = '';
@@ -863,31 +877,11 @@
       if (slot.dishCourseFilter) pool = pool.filter(d => d.course && d.course.includes(slot.dishCourseFilter));
       if (slot.dishMethodFilter) pool = pool.filter(d => d.method && d.method.includes(slot.dishMethodFilter));
 
-      const availableOrigins = DATA.origins.filter(o => pool.some(d => d.origins.includes(o)));
-
-      const list = document.createElement('div');
-      list.className = 'origin-list';
-
-      if (availableOrigins.length === 0) {
-        list.innerHTML = '<div class="no-result">該当する料理がありません</div>';
+      if (pool.length === 0) {
+        container.innerHTML = '<div class="no-result">該当する料理がありません</div>';
       } else {
-        availableOrigins.forEach(origin => {
-          const isChecked = checks.has(origin);
-          const row = document.createElement('div');
-          row.className = 'origin-row';
-          row.innerHTML = `
-            <div class="cb ${isChecked ? 'checked' : ''}"></div>
-            <div class="origin-label">${origin}</div>
-          `;
-          row.addEventListener('click', () => {
-            isChecked ? checks.delete(origin) : checks.add(origin);
-            renderDishList();
-            updateSlotDisplay(currentSlot);
-          });
-          list.appendChild(row);
-        });
+        container.innerHTML = `<div class="result-hint">条件に合う料理: ${pool.length}件</div>`;
       }
-      container.appendChild(list);
     }
 
     // ---- リセット ----
@@ -935,20 +929,22 @@
       const valEl  = document.getElementById(`slot-${index === 0 ? 'a' : 'b'}-value`);
 
       const hasDishFilter = slot.dishTempFilter || slot.dishCourseFilter || slot.dishMethodFilter;
-      const hasFilter = checks.size > 0 || slot.seasonFilter || hasDishFilter;
+      const hasFilter = slot.type === 'ingredient'
+        ? (checks.size > 0 || slot.seasonFilter)
+        : hasDishFilter;
       if (!hasFilter) {
         typeEl.textContent = '';
         valEl.textContent = '？';
         slotEl.classList.remove('filled');
       } else {
         typeEl.textContent = typeLabel;
-        if (checks.size === 0) {
-          valEl.textContent = 'すべて';
-        } else {
+        if (slot.type === 'ingredient' && checks.size > 0) {
           const labels = [...checks].map(k =>
             k.startsWith('::') ? k.slice(2) : k.includes('::') ? k.split('::')[1] : k
           );
           valEl.textContent = labels.slice(0, 3).join('・') + (labels.length > 3 ? '…' : '');
+        } else {
+          valEl.textContent = 'すべて';
         }
         slotEl.classList.add('filled');
       }
@@ -987,9 +983,7 @@
         if (slot.dishTempFilter)   pool = pool.filter(d => d.temp && d.temp.includes(slot.dishTempFilter));
         if (slot.dishCourseFilter) pool = pool.filter(d => d.course && d.course.includes(slot.dishCourseFilter));
         if (slot.dishMethodFilter) pool = pool.filter(d => d.method && d.method.includes(slot.dishMethodFilter));
-        const checks = slot.checks;
-        if (checks.size === 0) return pool;
-        return pool.filter(d => d.origins.some(o => checks.has(o)));
+        return pool;
       }
     }
 
